@@ -1,0 +1,149 @@
+# best practice to use upper-case
+entities:
+  - ADVISORY
+  - DOCUMENT
+  - ENTITY
+  - EVENT
+  - LAW
+  - ORGANIZATION
+  - PERSON
+  - PLACE
+  - PRODUCT
+  - PROFESSION
+  - PROGRAM
+  - PROPERTY
+  - RISK
+  - SERVICE
+
+relations:
+  - AUTHORED_BY
+  - HAS
+  - HAS_PART
+  - IS_A
+  - LOCATED_IN
+  - OFFERS
+  - MENTIONED_IN
+  - PART_OF
+  - RELATED_TO
+  - SIGNED_BY
+  - SUCEEDED_BY
+  - WORKED_ON
+  - WORKED_WITH
+  - WORKED_AT
+# define which entities can have which relations
+validation_schema:
+  ADVISORY:
+    - AUTHORED_BY
+    - HAS
+    - HAS_PART
+    - MENTIONED_IN
+    - PART_OF
+    - RELATED_TO
+    - SIGNED_BY
+    - SUCEEDED_BY
+  DOCUMENT:
+    - AUTHORED_BY
+    - HAS_PART
+    - MENTIONED_IN
+    - RELATED_TO
+    - SIGNED_BY
+    - SUCEEDED_BY
+    - WORKED_ON
+  ENTITY:
+    - HAS
+    - HAS_PART
+    - IS_A
+    - LOCATED_IN
+    - MENTIONED_IN
+    - RELATED_TO
+  EVENT:
+    - IS_A
+    - LOCATED_IN
+    - MENTIONED_IN
+    - RELATED_TO
+    - WORKED_AT
+  LAW:
+    - HAS
+    - HAS_PART
+    - MENTIONED_IN
+    - PART_OF
+    - RELATED_TO
+    - SUCEEDED_BY
+  ORGANIZATION:
+    - HAS
+    - HAS_PART
+    - IS_A
+    - LOCATED_IN
+    - MENTIONED_IN
+    - PART_OF
+    - RELATED_TO
+    - WORKED_WITH
+  PERSON:
+    - HAS
+    - HAS_PART
+    - IS_A
+    - LOCATED_IN
+    - MENTIONED_IN
+    - PART_OF
+    - RELATED_TO
+    - SIGNED_BY
+    - WORKED_ON
+    - WORKED_WITH
+    - WORKED_AT
+  PLACE:
+    - HAS
+    - HAS_PART
+    - IS_A
+    - LOCATED_IN
+    - MENTIONED_IN
+    - PART_OF
+    - RELATED_TO
+    - WORKED_AT
+  PRODUCT:
+    - HAS
+    - HAS_PART
+    - IS_A
+    - LOCATED_IN
+    - MENTIONED_IN
+    - PART_OF
+    - RELATED_TO
+  PROFESSION:
+    - HAS
+    - HAS_PART
+    - IS_A
+    - LOCATED_IN
+    - MENTIONED_IN
+    - PART_OF
+    - RELATED_TO
+  PROGRAM:
+    - HAS
+    - HAS_PART
+    - IS_A
+    - LOCATED_IN
+    - MENTIONED_IN
+    - PART_OF
+    - RELATED_TO
+  PROPERTY:
+    - HAS
+    - HAS_PART
+    - IS_A
+    - LOCATED_IN
+    - MENTIONED_IN
+    - PART_OF
+    - RELATED_TO
+  RISK:
+    - HAS
+    - HAS_PART
+    - IS_A
+    - LOCATED_IN
+    - MENTIONED_IN
+    - PART_OF
+    - RELATED_TO
+  SERVICE:
+    - HAS
+    - HAS_PART
+    - IS_A
+    - LOCATED_IN
+    - MENTIONED_IN
+    - PART_OF
+    - RELATED_TO

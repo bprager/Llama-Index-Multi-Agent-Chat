@@ -1,0 +1,25 @@
+# best practice to use upper-case
+entities:
+  - ADVISORY
+  - DOCUMENT
+  - ENTITY
+
+relations:
+  - AUTHORED_BY
+  - HAS
+  - HAS_PART
+  - IS_A
+
+# define which entities can have which relations
+validation_schema:
+  ADVISORY:
+    - AUTHORED_BY
+    - HAS
+    - HAS_PART
+  DOCUMENT:
+    - AUTHORED_BY
+    - HAS_PART
+  ENTITY:
+    - HAS
+    - HAS_PART
+    - IS_A
