@@ -21,9 +21,6 @@ def _get_research_tools() -> list[PropertyGraphTool]:
     Researcher takes responsibility for retrieving information
     using property graph querying strategies.
     """
-    graph_store = graph_store
-    vector_store = vector_store
-    llm = "your_language_model_instance"
 
     tools = [
         KeywordSynonymRetriever(graph_store, vector_store, llm),

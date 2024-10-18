@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Convert all pdf documents in a directory to markdown
+Convert all pdf documents in the current directory to markdown files.
 """
 import logging
 import time
@@ -23,8 +23,6 @@ class ModelSettings(BaseSettings):
     )
     llama_cloud_api_key: SecretStr
     logging_level: str = "INFO"
-    markdown_path: str
-    pdf_path: str
 
 
 settings = ModelSettings()  # type: ignore [call-arg]
@@ -49,7 +47,7 @@ logging.getLogger("llama_index").setLevel(logging.INFO)
 # set up parser
 parser = LlamaParse(
     result_type=ResultType.MD,
-    split_by_page=False,  # force to split by page
+    split_by_page=True,  # force to split by page
     api_key=settings.llama_cloud_api_key.get_secret_value(),
 )
 
@@ -60,17 +58,16 @@ def main():
     logging.debug("Converting pdf files to markdown")
     file_extractor = {".pdf": parser}
     documents: list[schema.Document] = []  # type: ignore [annotation-unchecked]
-    documents = SimpleDirectoryReader(
-        settings.pdf_path, file_extractor=file_extractor
-    ).load_data()
+    documents = SimpleDirectoryReader(".", file_extractor=file_extractor).load_data()
     for doc in documents:
         file_name: str = doc.metadata["file_name"]  # type: ignore [annotation-unchecked]
-        logging.debug("Converting %s", file_name)
-        base_name: str = pathlib.Path(file_name).stem  # type: ignore [annotation-unchecked]
-        markdown_file_name: str  # type: ignore [annotation-unchecked]
-        markdown_file_name = settings.markdown_path + f"/{base_name}.md"
-        with open(markdown_file_name, mode="w", encoding="utf-8") as f:
-            f.write(doc.text)
+        if file_name.endswith(".pdf"):
+            logging.debug("Converting %s", file_name)
+            base_name: str = pathlib.Path(file_name).stem  # type: ignore [annotation-unchecked]
+            markdown_file_name: str  # type: ignore [annotation-unchecked]
+            markdown_file_name = f"{base_name}.md"
+            with open(markdown_file_name, mode="w", encoding="utf-8") as f:
+                f.write(doc.text)
 
     logging.debug("Done")
 

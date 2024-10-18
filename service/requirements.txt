@@ -33,6 +33,8 @@ Jinja2==3.1.4
 jiter==0.6.1
 joblib==1.4.2
 llama-index-core==0.11.18
+llama-index-embeddings-azure-openai==0.2.5
+llama-index-embeddings-openai==0.2.5
 llama-index-graph-stores-neo4j==0.3.3
 llama-index-llms-azure-openai==0.2.2
 llama-index-llms-openai==0.2.15

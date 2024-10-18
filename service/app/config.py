@@ -1,8 +1,10 @@
 """ Configuration settings for the web service """
 
+from llama_index.core import Settings
+from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
+from llama_index.graph_stores.neo4j import Neo4jPGStore  # type: ignore [import-untyped]
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.vector_stores.neo4jvector import Neo4jVectorStore
-from llama_index.graph_stores.neo4j import Neo4jPGStore  # type: ignore [import-untyped]
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -62,8 +64,20 @@ vector_store = Neo4jVectorStore(
 llm = AzureOpenAI(
     engine=settings.azure_openai_engine,
     model=settings.azure_openai_llm_deployment,
-    temperature=0.0,
-    azure_endpoint="https://.openai.azure.com/",
-    api_key="",
-    api_version="2023-07-01-preview",
+    temperature=settings.llm_temperature,
+    azure_endpoint=settings.azure_openai_endpoint,
+    api_key=settings.azure_openai_api_key.get_secret_value(),
+    api_version=settings.azure_openai_api_version,
 )
+
+# embedding model
+embed_model = AzureOpenAIEmbedding(
+    model=settings.azure_openai_embedding_model,
+    deployment_name=settings.azure_openai_embedding_deployment,
+    azure_endpoint=settings.azure_openai_endpoint,
+    api_key=settings.azure_openai_api_key.get_secret_value(),
+    api_version=settings.azure_openai_api_version,
+)
+
+Settings.llm = llm
+Settings.embed_model = embed_model
