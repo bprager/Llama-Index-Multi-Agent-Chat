@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+import logging
 import os
+import sys
 
 from dotenv import load_dotenv
 from llama_index.core.llms import ChatMessage, MessageRole
@@ -7,6 +9,17 @@ from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.core import Settings
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+from openai import AuthenticationError
+
+logging.basicConfig(
+    level=logging.WARNING,
+    format="%(asctime)s.%(msecs)03d %(levelname)s %(name)s - %(funcName)s:%(lineno)d: %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("input_pipeline.log", mode="w"),
+    ],
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 load_dotenv()
 
@@ -41,7 +54,7 @@ response = llm.chat(messages)
 print(response)
 
 documents = SimpleDirectoryReader(
-    input_files=["./markdowns/hhgttg-intro.md"]
+    input_files=["./hhgttg-intro.md"]
 ).load_data()
 index = VectorStoreIndex.from_documents(documents)
 

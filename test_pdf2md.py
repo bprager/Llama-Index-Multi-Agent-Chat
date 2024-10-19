@@ -47,7 +47,7 @@ logging.getLogger("llama_index").setLevel(logging.INFO)
 # set up parser
 parser = LlamaParse(
     result_type=ResultType.MD,
-    split_by_page=True,  # force to split by page
+    split_by_page=False,  # force to split by page
     api_key=settings.llama_cloud_api_key.get_secret_value(),
 )
 
