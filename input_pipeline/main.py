@@ -2,21 +2,30 @@
 """
 Build knowledge graph from Markdown files
 """
-import logging
 import pickle
 import time
 from typing import Any, Dict, List, Tuple, TypedDict
+import logging
+
 
 import yaml  # type: ignore [import-untyped]
-from llama_index.core import PropertyGraphIndex, Settings  # type: ignore [import-untyped]
-from llama_index.core import SimpleDirectoryReader, schema  # type: ignore [import-untyped]
+from llama_index.core import (  # type: ignore [import-untyped]
+    PropertyGraphIndex,
+    Settings,
+    SimpleDirectoryReader,
+    schema,
+)
 from llama_index.core.indices.property_graph import SchemaLLMPathExtractor
-from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
-from llama_index.graph_stores.neo4j import Neo4jPropertyGraphStore
-from llama_index.llms.azure_openai import AzureOpenAI
+from llama_index.embeddings.azure_openai import (  # type: ignore [import-untyped]
+    AzureOpenAIEmbedding,
+)
+from llama_index.graph_stores.neo4j import (  # type: ignore [import-untyped]
+    Neo4jPropertyGraphStore,
+)
+from llama_index.llms.azure_openai import AzureOpenAI  # type: ignore [import-untyped]
 from llama_parse import LlamaParse, ResultType  # type: ignore [import-untyped]
-from pydantic import SecretStr
-from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from module_settings import settings, logger
 
 Triple = Tuple[str, str, str]
 
@@ -27,59 +36,13 @@ class EntitiesConfig(TypedDict):
     validation_schema: Dict[str, List[str]]
 
 
-# Settings
-class ModelSettings(BaseSettings):
-    """Settings for knowledge graph builder"""
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        extra="ignore",
-        env_file_encoding="utf-8",
-    )
-    api_type: str
-    azure_openai_api_key: SecretStr
-    azure_openai_api_version: str
-    azure_openai_embedding_deployment: str
-    azure_openai_embedding_model: str
-    azure_openai_endpoint: str
-    azure_openai_model: str = "gpt-4-turbo"
-    azure_openai_path: str
-    llama_cloud_api_key: SecretStr
-    logging_level: str = "INFO"
-    markdown_path: str
-    neo4j_password: SecretStr
-    neo4j_uri: str
-    neo4j_username: str
-    pdf_path: str
-
-
-settings = ModelSettings()  # type: ignore [call-arg]
-
-# Configure logging
-logging.basicConfig(
-    level=getattr(logging, settings.logging_level),
-    format="%(asctime)s.%(msecs)03d %(levelname)s %(name)s - %(funcName)s:%(lineno)d: %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("input_pipeline.log", mode="w"),
-    ],
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-# Loggers exlude from debug
-logging.getLogger("asyncio").setLevel(logging.INFO)
-logging.getLogger("fsspec").setLevel(logging.INFO)
-logging.getLogger("httpcore").setLevel(logging.INFO)
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logging.getLogger("llama_index").setLevel(logging.INFO)
-logging.getLogger("neo4j").setLevel(logging.INFO)
-logging.getLogger("openai").setLevel(logging.INFO)
-
 graph_store = Neo4jPropertyGraphStore(
     username=settings.neo4j_username,
     password=settings.neo4j_password.get_secret_value(),
     url=settings.neo4j_uri,
 )
 
+logger.debug("Setting up parser")
 # set up parser
 parser = LlamaParse(
     result_type=ResultType.MD,
@@ -87,6 +50,7 @@ parser = LlamaParse(
     api_key=settings.llama_cloud_api_key.get_secret_value(),
 )
 
+logger.debug("Setting up LLM")
 # set up LLM
 llm = AzureOpenAI(
     api_key=settings.azure_openai_api_key.get_secret_value(),
@@ -98,6 +62,7 @@ llm = AzureOpenAI(
     temperature=0.0,
 )
 
+logger.debug("Setting up embedding model")
 embed_model = AzureOpenAIEmbedding(
     api_key=settings.azure_openai_api_key.get_secret_value(),
     api_version=settings.azure_openai_api_version,
@@ -116,7 +81,7 @@ def build_knowledge_graph(
     show_progress: bool = True,
 ) -> None:
     """Build knowledge graph from documents and store in graph store"""
-    logging.debug("Building knowledge graph ...")
+    logger.debug("Building knowledge graph ...")
     PropertyGraphIndex.from_documents(
         llm=llm,
         documents=documents,
@@ -142,7 +107,7 @@ def main():
     # Directly assign the lists from the configuration
     entities: List[str] = entities_config["entities"]  # type: ignore [annotation-unchecked]
     relations: List[str] = entities_config["relations"]  # type: ignore [annotation-unchecked]
-    logging.info("Loaded %d entities", len(entities))  # type: ignore [annotation-unchecked]
+    logger.info("Loaded %d entities", len(entities))  # type: ignore [annotation-unchecked]
 
     validation_schema: Dict[str, List[str]]  # type: ignore [annotation-unchecked]
     validation_schema = entities_config["validation_schema"]  # type: ignore [annotation-unchecked]
@@ -163,8 +128,9 @@ def main():
     if logging.getLogger().isEnabledFor(logging.DEBUG):
         for entity, relations in validation_schema.items():
             # Log the entity and its associated relations
-            logging.debug("Validating %s -> %s", entity, ", ".join(relations))
+            logger.debug("Validating %s -> %s", entity, ", ".join(relations))
 
+    logger.debug("Setting up knowledge graph extractor")
     # Knowledge graph
     kg_extractor = SchemaLLMPathExtractor(
         llm=llm,
@@ -184,18 +150,18 @@ def main():
         required_exts=required_exts,
         recursive=False,
     ).load_data()
-    logging.debug("Loaded %d documents", len(documents))
+    logger.debug("Loaded %d documents", len(documents))
 
     # Save documents for further inspection
     if logging.getLogger().isEnabledFor(logging.DEBUG):
         with open("documents.pkl", "wb") as file:
             # Use pickle.dump to serialize and save the documents
-            logging.debug("Saving documents to disk")
+            logger.debug("Saving documents to disk")
             pickle.dump(documents, file, protocol=pickle.HIGHEST_PROTOCOL)
 
     build_knowledge_graph(documents, kg_extractor, show_progress=False)
 
-    logging.info("Done")
+    logger.info("Done")
 
 
 if __name__ == "__main__":
@@ -203,4 +169,4 @@ if __name__ == "__main__":
     main()
     mins, secs = divmod(time.time() - start_time, 60)
     hrs, mins = divmod(mins, 60)
-    logging.info("Execution time: %02d:%02d:%02d", hrs, mins, secs)
+    logger.info("Execution time: %02d:%02d:%02d", hrs, mins, secs)
