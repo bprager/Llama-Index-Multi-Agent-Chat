@@ -45,7 +45,7 @@ graph_store = Neo4jPropertyGraphStore(
 logger.debug("Setting up parser")
 # set up parser
 parser = LlamaParse(
-    result_type=ResultType.MD,
+    # result_type=ResultType.MD,
     split_by_page=True,  # force to split by page
     api_key=settings.llama_cloud_api_key.get_secret_value(),
 )
@@ -142,11 +142,14 @@ def main():
         strict=False,
     )
 
+    # Use Llama-Parser to extract text from PDF files
+    file_extractor = {".pdf": parser}
     # only load pdf files
     required_exts = [".pdf"]
     documents: list[schema.Document] = []  # type: ignore [annotation-unchecked]
     documents = SimpleDirectoryReader(
         settings.pdf_path,
+        file_extractor=file_extractor,
         required_exts=required_exts,
         recursive=False,
     ).load_data()
